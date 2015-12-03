@@ -36,20 +36,31 @@ Template.addFens.events({
     }
 });
 
+//the chessboard sometimes skips a click
 Template.chessButtons.events({
     "click #start": function() {
-        if(Session.get('value') == 1) {
-            createBoard('8/8/8/8/8/8/8/8');
-            Session.set('value', 2);
-        }
-        else {
-            createBoard(getFen());
+        if (Session.get('value') == 2) {
+            console.log("playerpos: " + chessboard.fen());
+            var playerPosition = chessboard.fen();
+
+            if(playerPosition == Session.get('savedFen')) {
+                console.log('success');
+            }
+            else {
+                console.log('wrong position');
+            }
+
+            chessboard.position(getFen());
             Session.set('value', 1);
+        }
+        else if(Session.get('value') == 1) {
+            chessboard.position('8/8/8/8/8/8/8/8');
+            Session.set('value', 2);
         }
     },
 
     "click #skip": function() {
-        createBoard(getFen());
+        chessboard.position(getFen());
         Session.set('value', 1);
     }
 });
@@ -65,20 +76,22 @@ Template.chessButtons.helpers({
     }
 });
 
-
+//the bug where the things don't show was because of the animation speed 0
 function createBoard (fen) {
-    var chessboard = ChessBoard('board', {
+    chessboard = ChessBoard('board', {
         draggable: true,
         dropOffBoard: 'trash',
         sparePieces: true,
-        position: fen
+        position: fen,
+        moveSpeed: 2000
     });
+    Session.set('chessboard', chessboard);
     return chessboard;
 }
 
 //TODO: if someone goes straight to the /train route, the get wont work
 function getFen () {
-    var randomIndex = getRandomInt(0, Fens.find().fetch().length);
+    var randomIndex = getRandomInt(0, Fens.find().fetch().length - 1);
     //console.log(Fens.find().fetch());
     console.log(Fens.findOne({index: randomIndex}));
     var fenFromIndex = Fens.findOne({index: randomIndex});
