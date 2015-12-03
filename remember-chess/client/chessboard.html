@@ -1,0 +1,45 @@
+<template name="mainApp">
+    <h1>Remember the board</h1>
+    {{> chessboard}}
+    <br>
+    {{> chessButtons}}
+    <br><br>
+    {{> addFens}}
+</template>
+
+<template name="chessboard">
+    <div id="board" style="width: 400px"></div>
+</template>
+
+<template name="chessButtons">
+    {{> boardDropdown}}
+    <div class="btn-group" role="group">
+        <button id="skip" type="button" class="btn btn-default">
+            Skip
+        </button>
+        <button id="start" type="button" class="btn btn-default">
+            {{startAndReadyText}}
+        </button>
+    </div>
+</template>
+
+<template name="boardDropdown">
+    <div class="btn-group">
+        <button type="button" class="btn btn-default dropdown-toggle"
+        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Board size <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+            <li><a id="fourth" href="#">1/4</a></li>
+            <li><a id="half" href="#">1/2</a></li>
+            <li><a id="full" href="#">Full</a></li>
+        </ul>
+    </div>
+</template>
+
+<template name="addFens">
+    <form class="urlForm">
+        <input type="text" name="text" placeholder="Type url here" />
+    </form>
+</template>
+

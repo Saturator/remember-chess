@@ -1,0 +1,1 @@
+Fens = new Mongo.Collection('fens');

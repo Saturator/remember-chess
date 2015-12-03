@@ -1,0 +1,25 @@
+<template name="layout">
+    <body>
+        <div class="container-fluid">
+            <center>
+                {{> yield}}
+            </center>
+        </div>
+    </body>
+</template>
+
+<template name="intro">
+    <div class="jumbotron">
+        <h1>Hi! :)</h1>
+        <p>This is a small app made by me that's supposed to increase
+            your chess pattern memory. I've done it for a while and I feel
+            like I've benefited from it some. The idea is to match the chess
+            pieces to the ones presented to you before clearing the board.
+            Check out if it works for you!</p>
+        <p>
+            <a class="btn btn-primary btn-lg" href="/train" role="button">
+                Begin
+            </a>
+        </p>
+    </div>
+</template>
