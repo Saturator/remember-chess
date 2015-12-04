@@ -1,6 +1,6 @@
 Template.chessboard.onRendered(
     function() {
-        Session.set('value', 1)
+        Session.set('value', 'start');
         var startFen = 'r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R';
         createBoard(startFen);
         Session.set('savedFen', startFen);
@@ -11,12 +11,13 @@ Template.boardDropdown.events({
     "click #fourth": function(event) {
         event.preventDefault();
         Session.set('boardSize', 0.25);
+        //quarterFen(Session.get('savedFen'));
     },
 
     "click #half": function(event) {
         event.preventDefault();
         Session.set('boardSize', 0.5);
-        halveFen(Session.get('savedFen'));
+        //halveFen(Session.get('savedFen'));
     },
 
     "click #full": function(event) {
@@ -39,8 +40,8 @@ Template.addFens.events({
 //the chessboard sometimes skips a click
 Template.chessButtons.events({
     "click #start": function() {
-        if (Session.get('value') == 2) {
-            console.log("playerpos: " + chessboard.fen());
+        if (Session.get('value') === 'ready') {
+            //gets current piece positions
             var playerPosition = chessboard.fen();
 
             if(playerPosition == Session.get('savedFen')) {
@@ -51,26 +52,26 @@ Template.chessButtons.events({
             }
 
             chessboard.position(getFen());
-            Session.set('value', 1);
+            Session.set('value', 'start');
         }
-        else if(Session.get('value') == 1) {
+        else if(Session.get('value') === 'start') {
             chessboard.position('8/8/8/8/8/8/8/8');
-            Session.set('value', 2);
+            Session.set('value', 'ready');
         }
     },
 
     "click #skip": function() {
         chessboard.position(getFen());
-        Session.set('value', 1);
+        Session.set('value', 'start');
     }
 });
 
 Template.chessButtons.helpers({
-    startAndReadyText: function test (value) {
-        if(Session.get('value') == 1) {
+    startAndReadyText: function () {
+        if(Session.get('value') === 'start') {
             return 'Start';
         }
-        else if(Session.get('value') == 2) {
+        else if(Session.get('value') === 'ready') {
             return 'Ready';
         }
     }
@@ -93,13 +94,19 @@ function createBoard (fen) {
 function getFen () {
     var randomIndex = getRandomInt(0, Fens.find().fetch().length - 1);
     //console.log(Fens.find().fetch());
-    console.log(Fens.findOne({index: randomIndex}));
+    //console.log(Fens.findOne({index: randomIndex}));
     var fenFromIndex = Fens.findOne({index: randomIndex});
-    console.log(fenFromIndex.fen);
+    //console.log(fenFromIndex.fen);
     var fen = fenFromIndex.fen;
 
-    if(Session.get('boardSize', 0.5)) {
+    if(Session.get('boardSize') == 0.5) {
         fen = halveFen(fen);
+    }
+    else if (Session.get('boardSize') == 0.25) {
+        //this quarter fen returns in the wrong format
+        //so it doesn't match
+        //TODO: make this so it matches
+        fen = quarterFen(fen);
     }
 
     Session.set('savedFen', fen);
@@ -108,10 +115,42 @@ function getFen () {
 
 function halveFen (fen) {
     var splitFen = fen.split('/');
-    console.log(splitFen);
     var halvedFen = splitFen[0] + '/' + splitFen[1] + '/' + splitFen[2] +
-                    '/' + splitFen[3] + '/8/8/8/8'
+                    '/' + splitFen[3] + '/8/8/8/8';
     return halvedFen;
+}
+
+function quarterFen (fen) {
+    var splitFen = fen.split('/');
+    var isLetter = /[a-zA-Z]/g;
+    var isNumber = /[0-9]/g;
+    rows: for(var i = 0; i <= splitFen.length - 4; i++) {
+        var capNumber = 0;
+        //TODO: add the number ones together in the end to make a better fen
+        chars: for (var n = 0; n <= splitFen[i].length - 4; n++) {
+            var thisChar = splitFen[i].charAt(n);
+            //console.log(thisChar);
+            if(thisChar.match(isNumber)) {
+                capNumber += parseInt(thisChar);
+                if(capNumber >= 4) {
+                    break chars;
+                }
+            }
+            else if(thisChar.match(isLetter)) {
+                splitFen[i] = insertNumberOne(splitFen[i], n);
+            }
+        }
+        //console.log(splitFen[i]);
+    }
+    var quarterFen = splitFen[0] + '/' + splitFen[1] + '/' + splitFen[2] +
+        '/' + splitFen[3] + '/8/8/8/8';
+    //console.log("quarter: " + quarterFen);
+
+    return quarterFen;
+}
+
+function insertNumberOne (str, position) {
+    return str.substring(0, position) + '1' + str.substring(position+1, str.length);
 }
 
 function getRandomInt (min, max) {
