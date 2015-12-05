@@ -1,5 +1,8 @@
+rightInRow = 0;
+
 Template.chessboard.onRendered(
     function() {
+        Session.set('rightInRow', rightInRow);
         Session.set('value', 'start');
         var startFen = 'r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R';
         createBoard(startFen);
@@ -7,16 +10,19 @@ Template.chessboard.onRendered(
     }
 );
 
+
 Template.boardDropdown.events({
     "click #fourth": function(event) {
         event.preventDefault();
         Session.set('boardSize', 0.25);
+        chessboard.position(getFen());
         //quarterFen(Session.get('savedFen'));
     },
 
     "click #half": function(event) {
         event.preventDefault();
         Session.set('boardSize', 0.5);
+        chessboard.position(getFen());
         //halveFen(Session.get('savedFen'));
     },
 
@@ -24,6 +30,7 @@ Template.boardDropdown.events({
         event.preventDefault();
         Session.set('boardSize', 1);
         console.log(Session.get('boardSize'));
+        chessboard.position(getFen());
     }
 });
 
@@ -43,12 +50,14 @@ Template.chessButtons.events({
         if (Session.get('value') === 'ready') {
             //gets current piece positions
             var playerPosition = chessboard.fen();
-
+            //TODO: make a text fadeaway thingy for success
             if(playerPosition == Session.get('savedFen')) {
                 console.log('success');
+                Session.set('rightInRow', rightInRow++);
             }
             else {
                 console.log('wrong position');
+                Session.set('rightInRow', 0);
             }
 
             chessboard.position(getFen());
@@ -77,6 +86,12 @@ Template.chessButtons.helpers({
     }
 });
 
+Template.rightInRow.helpers({
+    amt: function() {
+        return Session.get('rightInRow');
+    }
+})
+
 //the bug where the things don't show was because of the animation speed 0
 function createBoard (fen) {
     chessboard = ChessBoard('board', {
@@ -91,6 +106,7 @@ function createBoard (fen) {
 }
 
 //TODO: if someone goes straight to the /train route, the get wont work
+//TODO: rotate the split and quarter fens around the board
 function getFen () {
     var randomIndex = getRandomInt(0, Fens.find().fetch().length - 1);
     //console.log(Fens.find().fetch());
@@ -103,9 +119,6 @@ function getFen () {
         fen = halveFen(fen);
     }
     else if (Session.get('boardSize') == 0.25) {
-        //this quarter fen returns in the wrong format
-        //so it doesn't match
-        //TODO: make this so it matches
         fen = quarterFen(fen);
     }
 
@@ -121,36 +134,49 @@ function halveFen (fen) {
 }
 
 function quarterFen (fen) {
+    //console.log(fen);
     var splitFen = fen.split('/');
-    var isLetter = /[a-zA-Z]/g;
+    //var isLetter = /[a-zA-Z]/g;
     var isNumber = /[0-9]/g;
-    rows: for(var i = 0; i <= splitFen.length - 4; i++) {
-        var capNumber = 0;
+    for(var i = 0; i < splitFen.length - 4; i++) {
+        var position = 0;
+        var n = 0;
         //TODO: add the number ones together in the end to make a better fen
-        chars: for (var n = 0; n <= splitFen[i].length - 4; n++) {
-            var thisChar = splitFen[i].charAt(n);
-            //console.log(thisChar);
+        addition: while(true) {
+            var thisChar = splitFen[i].charAt(0);
             if(thisChar.match(isNumber)) {
-                capNumber += parseInt(thisChar);
-                if(capNumber >= 4) {
-                    break chars;
-                }
+                var thisNum = parseInt(thisChar);
+                n += thisNum;
+                splitFen[i] = removeCharAt(splitFen[i], 0);
             }
-            else if(thisChar.match(isLetter)) {
-                splitFen[i] = insertNumberOne(splitFen[i], n);
+            else {
+                n++;
+                splitFen[i] = removeCharAt(splitFen[i], 0);
             }
+            if(n >= 4) {
+                break addition;
+            }
+            position++;
         }
+
         //console.log(splitFen[i]);
+        var secondChar = splitFen[i].charAt(0);
+        if(secondChar.match(isNumber)) {
+            var secondNumber = parseInt(secondChar);
+            n = n + secondNumber;
+            splitFen[i] = removeCharAt(splitFen[i], 0);
+        }
+
+        splitFen[i] = n + splitFen[i];
     }
     var quarterFen = splitFen[0] + '/' + splitFen[1] + '/' + splitFen[2] +
         '/' + splitFen[3] + '/8/8/8/8';
-    //console.log("quarter: " + quarterFen);
 
     return quarterFen;
 }
 
-function insertNumberOne (str, position) {
-    return str.substring(0, position) + '1' + str.substring(position+1, str.length);
+function removeCharAt (str, position) {
+    return str.substring(0, position) + str.substring(position+1, str.length);
 }
 
 function getRandomInt (min, max) {

@@ -1,14 +1,19 @@
 <template name="mainApp">
-    <h1>Remember the board</h1>
+    <center>
+    <h3><span class="label label-default">Remember The Board</span></h3>
+    <br>
     {{> chessboard}}
     <br>
     {{> chessButtons}}
     <br><br>
+    {{> rightInRow}}
+    <br><br>
     {{> addFens}}
+    </center>
 </template>
 
 <template name="chessboard">
-    <div id="board" style="width: 400px"></div>
+    <div id="board" style="width: 350px; text-align: left"></div>
 </template>
 
 <template name="chessButtons">
@@ -30,11 +35,17 @@
             Board size <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
-            <li><a id="fourth" href="#">~1/4</a></li>
+            <li><a id="fourth" href="#">1/4</a></li>
             <li><a id="half" href="#">1/2</a></li>
             <li><a id="full" href="#">Full</a></li>
         </ul>
     </div>
+</template>
+
+<template name="rightInRow">
+    <span class="label label-primary">
+        You have {{amt}} right guesses in a row!
+    </span>
 </template>
 
 <template name="addFens">
