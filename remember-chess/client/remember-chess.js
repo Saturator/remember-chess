@@ -57,7 +57,8 @@ Template.chessButtons.events({
             }
             else {
                 console.log('wrong position');
-                Session.set('rightInRow', 0);
+                rightInRow = 0;
+                Session.set('rightInRow', rightInRow);
             }
 
             chessboard.position(getFen());
